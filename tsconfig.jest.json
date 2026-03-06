@@ -2,8 +2,10 @@
   "extends": "./tsconfig.app.json",
   "compilerOptions": {
     "types": ["jest"],
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "noEmit": true
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "verbatimModuleSyntax": false,
+    "esModuleInterop": true
   }
 }
