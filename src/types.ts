@@ -5,3 +5,19 @@ export interface Card {
   suit: Suit;
   rank: Rank;
 }
+
+export interface Player {
+  id: string;
+  name: string;
+  chips: number;
+  hand: Card[];
+}
+
+export interface GameState {
+  players: Player[];
+  deck: Card[];
+  pot: number;
+  currentPlayerIndex: number;
+  communityCards: Card[];
+  phase: 'preflop' | 'flop' | 'turn' | 'river' | 'showdown';
+}

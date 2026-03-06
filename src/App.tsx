@@ -1,8 +1,14 @@
-import { createDeck, shuffleDeck } from './deck';
-import Deck from './components/Deck/Deck';
-
-const deck = shuffleDeck(createDeck());
+import { useEffect } from 'react';
+import { useGameStore } from './store/gameStore';
+import Table from './components/Table/Table';
 
 export default function App() {
-  return <Deck cards={deck} />;
+  const { initGame, dealCards } = useGameStore();
+
+  useEffect(() => {
+    initGame(['Alice', 'Bob', 'Charlie']);
+    dealCards();
+  }, []);
+
+  return <Table />;
 }
