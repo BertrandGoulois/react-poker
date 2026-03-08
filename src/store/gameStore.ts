@@ -7,6 +7,7 @@ interface GameStore extends GameState {
     fold: () => void;
     call: () => void;
     raise: (amount: number) => void;
+    nextPhase: () => void;
 }
 
 function nextActiveIndex(players: Player[], current: number): number {
@@ -21,10 +22,10 @@ function nextActiveIndex(players: Player[], current: number): number {
 function isTourTermine(players: Player[], currentBet: number): boolean {
     return players
         .filter(p => p.isActive)
-        .every(p => p.currentRoundBet === currentBet);
+        .every(p => p.hasActed && p.currentRoundBet === currentBet);
 }
 
-export const useGameStore = create<GameStore>((set) => ({
+export const useGameStore = create<GameStore>((set, get) => ({
     players: [],
     deck: [],
     pot: 0,
@@ -44,6 +45,7 @@ export const useGameStore = create<GameStore>((set) => ({
             hand: [],
             isActive: true,
             currentRoundBet: 0,
+            hasActed: false,
         }));
 
         const firstRound = deck.splice(0, players.length);
@@ -56,8 +58,10 @@ export const useGameStore = create<GameStore>((set) => ({
 
         playersWithHands[0].chips -= 10;
         playersWithHands[0].currentRoundBet = 10;
+        playersWithHands[0].hasActed = true;
         playersWithHands[1].chips -= 20;
         playersWithHands[1].currentRoundBet = 20;
+        playersWithHands[1].hasActed = true;
 
         set({
             players: playersWithHands,
@@ -90,26 +94,45 @@ export const useGameStore = create<GameStore>((set) => ({
             const callAmount = Math.min(currentPlayer.chips, state.currentBet - currentPlayer.currentRoundBet);
             const players = state.players.map((p, i) =>
                 i === state.currentPlayerIndex
-                    ? { ...p, chips: p.chips - callAmount, currentRoundBet: p.currentRoundBet + callAmount }
+                    ? { ...p, chips: p.chips - callAmount, currentRoundBet: p.currentRoundBet + callAmount, hasActed: true }
                     : p
             );
             const pot = state.pot + callAmount;
             const next = nextActiveIndex(players, state.currentPlayerIndex);
-            const tourFini = isTourTermine(players, state.currentBet);
-            if (tourFini) console.log('Tour terminé, passage au flop');
             return { players, pot, currentPlayerIndex: next };
         });
+        if (isTourTermine(get().players, get().currentBet)) get().nextPhase();
     },
 
     raise: (amount: number) => {
         set((state) => {
             const players = state.players.map((p, i) =>
                 i === state.currentPlayerIndex
-                    ? { ...p, chips: p.chips - amount, currentRoundBet: p.currentRoundBet + amount }
+                    ? { ...p, chips: p.chips - amount, currentRoundBet: p.currentRoundBet + amount, hasActed: true }
                     : p
             );
             const next = nextActiveIndex(players, state.currentPlayerIndex);
             return { players, pot: state.pot + amount, currentBet: state.currentBet + amount, currentPlayerIndex: next };
+        });
+        if (isTourTermine(get().players, get().currentBet)) get().nextPhase();
+    },
+
+    nextPhase: () => {
+        set((state) => {
+            const phases: GameState['phase'][] = ['preflop', 'flop', 'turn', 'river', 'showdown'];
+            const currentIndex = phases.indexOf(state.phase);
+            const nextPhase = phases[currentIndex + 1] ?? 'showdown';
+
+            const players = state.players.map(p => ({ ...p, currentRoundBet: 0, hasActed: false }));
+
+            const deck = [...state.deck];
+            let newCommunityCards = [...state.communityCards];
+
+            if (nextPhase === 'flop') newCommunityCards = [...newCommunityCards, deck.pop()!, deck.pop()!, deck.pop()!];
+            if (nextPhase === 'turn') newCommunityCards = [...newCommunityCards, deck.pop()!];
+            if (nextPhase === 'river') newCommunityCards = [...newCommunityCards, deck.pop()!];
+
+            return { phase: nextPhase, players, deck, communityCards: newCommunityCards, currentBet: 0, currentPlayerIndex: 0 };
         });
     },
 }));

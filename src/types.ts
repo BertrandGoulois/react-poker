@@ -13,6 +13,7 @@ export interface Player {
   hand: Card[];
   isActive: boolean;
   currentRoundBet: number;
+  hasActed: boolean;
 }
 
 export interface GameState {
