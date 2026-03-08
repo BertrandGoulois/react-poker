@@ -11,12 +11,17 @@ export interface Player {
   name: string;
   chips: number;
   hand: Card[];
+  isActive: boolean;
+  currentRoundBet: number;
 }
 
 export interface GameState {
   players: Player[];
   deck: Card[];
   pot: number;
+  currentBet: number;
+  smallBlind: number;
+  bigBlind: number;
   currentPlayerIndex: number;
   communityCards: Card[];
   phase: 'preflop' | 'flop' | 'turn' | 'river' | 'showdown';

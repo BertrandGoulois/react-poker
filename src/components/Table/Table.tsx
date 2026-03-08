@@ -3,7 +3,7 @@ import Card from '../Card/Card';
 import * as styles from './Table.css.ts';
 
 export default function Table() {
-  const { players, communityCards, pot } = useGameStore();
+  const { players, communityCards, pot, currentPlayerIndex, fold, call, raise } = useGameStore();
 
   const playerPositions = [styles.playerTopLeft, styles.playerTopRight, styles.playerBottom];
 
@@ -11,7 +11,10 @@ export default function Table() {
     <div className={styles.table}>
       {players.map((player, i) => (
         <div key={player.id} className={playerPositions[i]}>
-          <p className={styles.playerName}>{player.name} — {player.chips} chips</p>
+          <p className={styles.playerName}>
+            {player.name} — {player.chips} chips
+            {i === currentPlayerIndex ? ' 👈' : ''}
+          </p>
           <div className={styles.hand}>
             {player.hand.map(card => (
               <Card key={`${card.rank}${card.suit}`} card={card} />
@@ -27,6 +30,13 @@ export default function Table() {
           ))}
         </div>
         <p className={styles.pot}>Pot : {pot}</p>
+
+        <div>
+          <button onClick={() => fold()}>Fold</button>
+          <button onClick={() => call()}>Call</button>
+          <button onClick={() => raise(50)}>Raise 50</button>
+          <button onClick={() => raise(100)}>Raise 100</button>
+        </div>
       </div>
     </div>
   );
