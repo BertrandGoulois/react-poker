@@ -132,7 +132,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
             if (nextPhase === 'turn') newCommunityCards = [...newCommunityCards, deck.pop()!];
             if (nextPhase === 'river') newCommunityCards = [...newCommunityCards, deck.pop()!];
 
-            return { phase: nextPhase, players, deck, communityCards: newCommunityCards, currentBet: 0, currentPlayerIndex: 0 };
+            const firstActive = players.findIndex(p => p.isActive);
+
+            return { phase: nextPhase, players, deck, communityCards: newCommunityCards, currentBet: 0, currentPlayerIndex: firstActive };
         });
     },
 }));
