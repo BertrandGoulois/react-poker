@@ -3,6 +3,9 @@ import type { GameState, Player } from '../types';
 import { createDeck, shuffleDeck } from '../deck';
 
 interface GameStore extends GameState {
+    gameId: string | null;
+    setGameId: (id: string) => void;
+    setDbPlayerIds: (dbPlayers: { id: number; name: string }[]) => void;
     initAndDeal: (playerNames: string[]) => void;
     fold: () => void;
     call: () => void;
@@ -26,6 +29,14 @@ function isTourTermine(players: Player[], currentBet: number): boolean {
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
+    gameId: null,
+    setGameId: (id) => set({ gameId: id }),
+    setDbPlayerIds: (dbPlayers) => set((state) => ({
+        players: state.players.map(p => {
+            const dbPlayer = dbPlayers.find(dp => dp.name === p.name);
+            return dbPlayer ? { ...p, id: String(dbPlayer.id) } : p;
+        })
+    })),
     players: [],
     deck: [],
     pot: 0,
